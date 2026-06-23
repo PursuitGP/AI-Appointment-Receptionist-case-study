@@ -1,0 +1,38 @@
+# macOS
+.DS_Store
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*token*.json
+*credentials*.json
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Logs and runtime artifacts
+*.log
+logs/
+tmp/
+*.sqlite
+*.db
+
+# Private or raw media
+screenshots/
+private-assets/
+raw-exports/
+customer-data/
+
+# Generated docs
+site/
+.cache/
