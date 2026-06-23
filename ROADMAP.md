@@ -6,33 +6,59 @@ businesses.
 
 ## Current State
 
-- Form-based intake for new scheduling inquiries.
-- Gmail reply handling for scheduling conversations.
-- Cal.com availability and booking context.
-- Lightweight operational state in Google Sheets.
+- Proven form-based intake for new scheduling inquiries.
+- Gmail reply correlation for scheduling conversations.
+- Standalone Gmail/business-alias handling implemented behind label, allowlist,
+  and mode flags.
+- Cal.com availability and booking validation.
+- Cal.com webhook receipt, event filtering, idempotent ProviderEvents storage,
+  and async booking-ledger reconciliation implemented as a staged foundation.
+- Twilio SMS support implemented but gated/disabled pending controlled
+  activation.
+- Lightweight operational state in Google Sheets with a PostgreSQL migration
+  path.
 - Guarded Claude interpretation and drafting.
 - Owner review paths for ambiguous or consequential actions.
 - Hosted execution with controlled rollout flags.
 
-## Next Milestone: Channel-Independent Gmail
+## Current Foundation: Channel-Independent Receptionist
 
-The next major milestone is to make standalone Gmail handling mature enough for
-existing customers, parents, guardians, and new leads without depending on a
-form submission as the starting point.
+The current foundation is channel-independent enough to normalize form
+submissions, Gmail messages, provider events, and gated SMS interactions into
+common internal records before identity, policy, review, and side-effect
+decisions.
+
+Implemented foundation:
+
+- customer, student, and relationship records;
+- review queue execution paths;
+- normalized message and interaction records;
+- deterministic policy gates around side effects;
+- idempotency and retry safety for provider and messaging workflows;
+- Railway cron execution and operational handoff patterns.
+
+## Next Milestone: Controlled Channel Activation and Hardening
+
+The next major milestone is controlled activation of the implemented foundation,
+not a rewrite into a new architecture.
 
 Key work:
 
-- stronger identity resolution;
-- relationship-aware customer context;
-- clearer review categories;
-- safer support for existing-client questions;
+- hosted staging for standalone Gmail/business-alias handling;
+- tighter identity resolution and relationship-aware customer context;
+- clearer review categories and owner action outcomes;
+- staged Cal.com webhook activation after reconciliation checks;
+- sender/A2P registration for SMS;
+- hosted Twilio webhook staging;
+- consent verification and a controlled end-to-end SMS test;
 - better separation of private facts from public business facts.
 
 ## Cal.com Webhook Ledger
 
-Provider events should be captured idempotently and reconciled into a booking
-ledger. This helps the receptionist understand provider-side changes without
-turning every provider event into an automatic customer conversation.
+Cal.com event receipt and reconciliation are implemented as a staged foundation.
+Incoming events are verified, filtered, stored idempotently, and reconciled into
+a booking ledger. Activation remains guarded so provider-side events do not
+automatically become customer-facing actions.
 
 ## Existing-Client Support
 
@@ -42,9 +68,15 @@ credit questions, and owner-approved account changes.
 
 ## Twilio and SMS
 
-SMS is a future channel to expand only after consent, identity, review, and
-logging controls are strong enough. The goal is not to add another notification
-path casually. The goal is to make SMS safe for real customer workflows.
+Twilio SMS is implemented but gated/disabled pending controlled activation. The
+foundation includes consent-aware routing, signed inbound and status webhooks,
+STOP/START/HELP handling, queued SMS interaction storage, and an async SMS
+worker.
+
+Remaining work is sender/A2P registration, hosted webhook staging, consent
+verification, and a controlled end-to-end test before any customer-facing SMS
+launch. The goal is not to add another notification path casually. The goal is
+to make SMS safe for real customer workflows.
 
 ## Social-Media Adapters
 

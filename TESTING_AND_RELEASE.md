@@ -33,6 +33,20 @@ identities, and dry-run settings. The goal is to prove that the system can work
 against real provider behavior while preventing accidental outreach to real
 customers.
 
+Webhook behavior is tested around verification, filtering, idempotent storage,
+and reconciliation rather than assuming provider delivery is clean or singular.
+Cal.com webhooks remain staged and guarded until reconciliation behavior is
+verified in hosted conditions.
+
+### Gated SMS Testing
+
+Twilio SMS paths are tested as an implemented but disabled foundation. Tests
+cover consent-aware routing, signed inbound and status webhooks,
+STOP/START/HELP handling, queued interaction storage, disabled-send behavior,
+and async worker processing. Customer-facing SMS activation waits for
+sender/A2P registration, hosted webhook staging, consent verification, and a
+controlled end-to-end test.
+
 ### Regression Suite
 
 Regression tests protect the behaviors that matter most:
@@ -42,7 +56,9 @@ Regression tests protect the behaviors that matter most:
 - clear replies select only previously offered slots;
 - ambiguous replies route to review;
 - duplicate processing does not create duplicate actions;
+- provider events are verified, stored idempotently, and reconciled safely;
 - disabled features remain disabled;
+- SMS behavior stays gated until activation criteria are met;
 - production data does not become test data accidentally.
 
 This public case study does not claim an exact test count because the private
@@ -72,3 +88,6 @@ with the owner.
 Operational handoffs include what is enabled, what is disabled, which safety
 flags matter, what was verified, and which next action would change production
 behavior.
+WORKFLOW_SUMMARY-style output is used as an operator-facing pattern, but public
+documentation does not include private run logs, identifiers, or environment
+values.

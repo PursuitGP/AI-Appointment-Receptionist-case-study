@@ -11,6 +11,11 @@ The worker checks intake and message queues, applies eligibility rules, updates
 state, and performs only the actions currently allowed by environment settings
 and policy.
 
+Railway cron execution and WORKFLOW_SUMMARY-style handoffs are part of the
+operating model: each run should make the enabled state, disabled state,
+verified behavior, and next risky action clear to the operator without exposing
+private configuration values.
+
 ## Safe Environment Flags
 
 Operational behavior is controlled by flags for areas such as dry-run mode,
@@ -29,6 +34,18 @@ receptionist open-ended authority over the entire inbox.
 The receptionist uses Cal.com as the scheduling provider. Availability and
 booking facts are treated as provider state that must be looked up and
 revalidated before customer-facing booking actions.
+
+Cal.com webhook receipt and booking-ledger reconciliation are implemented as a
+staged foundation. Activation remains guarded: provider events are verified,
+filtered, stored idempotently, and reconciled before they can influence
+operational booking state.
+
+## Twilio SMS
+
+Twilio support is implemented but gated/disabled pending controlled activation.
+The operational boundary is explicit: customer-facing SMS remains disabled
+until sender/A2P registration, hosted webhook staging, consent verification,
+and a controlled end-to-end test are complete.
 
 ## Manual Review Queue
 

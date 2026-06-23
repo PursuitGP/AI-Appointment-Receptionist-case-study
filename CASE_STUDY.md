@@ -33,7 +33,7 @@ situations.
 The private system is organized around a few durable boundaries:
 
 - **Channel adapters** normalize messages from intake sources such as forms,
-  Gmail, provider webhooks, and future SMS or social channels.
+  Gmail, provider webhooks, implemented gated SMS, and future social channels.
 - **Identity resolution** decides whether the system knows who is speaking and
   what relationship they have to the student or booking.
 - **Operational state** tracks submissions, contacts, conversations, offered
@@ -43,7 +43,8 @@ The private system is organized around a few durable boundaries:
   facts supplied by the system.
 - **Approval gates** route ambiguous or consequential work to the owner.
 - **Side-effect adapters** send email, initiate booking actions, and write audit
-  records after validation.
+  records after validation. SMS paths use the same pattern but remain disabled
+  until controlled activation is complete.
 
 This keeps the LLM useful without letting it become the authority for identity,
 availability, credits, bookings, or customer-impacting actions.
@@ -108,8 +109,16 @@ system knew when it was allowed to act.
 
 9. **Channel-independent foundation**
 
-   The architecture began moving beyond form-only intake toward Gmail, provider
-   webhooks, SMS, and other appointment-business channels.
+   The architecture moved beyond form-only intake into standalone Gmail,
+   provider events, normalized messages, review records, and booking ledger
+   updates.
+
+10. **Gated SMS foundation**
+
+   Twilio inbound, status, consent-aware routing, STOP/START/HELP handling,
+   queued interaction storage, and async worker paths were implemented but kept
+   disabled pending sender/A2P registration, hosted webhook staging, consent
+   verification, and a controlled end-to-end test.
 
 ## Challenges Solved
 
@@ -132,6 +141,13 @@ the same event to be seen more than once. The private system uses durable state,
 message identifiers, booking request identifiers, and status transitions to make
 reprocessing safe.
 
+### Verifying and Reconciling Provider Events
+
+Provider webhooks are not treated as trusted facts just because they arrived.
+Cal.com events are validated, filtered, stored idempotently, and reconciled into
+the booking ledger asynchronously so provider-side changes can inform state
+without automatically creating unsafe customer conversations.
+
 ### Separating Current Customers From New Leads
 
 Existing students, parents, and guardians should not receive new-lead trial
@@ -148,21 +164,34 @@ treated as product requirements rather than afterthoughts.
 
 The private system is a working, production-oriented receptionist for a chess
 coaching workflow. It has been tested with controlled business scenarios and
-guarded deployment settings. The architecture is being extended toward a more
-general receptionist that can serve other appointment-based businesses.
+guarded deployment settings. It is no longer just a form-to-email workflow; it
+has a channel-independent foundation for form intake, Gmail conversations,
+provider events, review records, booking ledger updates, and gated SMS.
+
+### Current Maturity
+
+- **Proven:** form intake, Gmail reply correlation, Cal.com availability and
+  booking validation, state tracking, fail-closed environment gates, and
+  side-effect-free scenario testing.
+- **Implemented but gated:** standalone Gmail/business-alias handling, Cal.com
+  webhook receipt and reconciliation, Twilio SMS support, and review queue
+  execution paths.
+- **Future:** social-media adapters, an owner dashboard, PostgreSQL migration,
+  and multi-business packaging.
 
 The public repository is intentionally documentation-only. It is meant to show
 engineering judgment, not distribute the business system itself.
 
 ## Future Roadmap
 
-The next direction is to make the receptionist less dependent on a single intake
-path and more useful across channels:
+The next direction is controlled activation and hardening of implemented
+foundations, followed by broader platform work:
 
-- channel-independent Gmail handling;
-- Cal.com webhook ledger and reconciliation;
+- hosted staging for standalone Gmail and business-alias handling;
+- guarded Cal.com webhook activation after staged reconciliation checks;
+- Twilio sender/A2P registration, hosted webhook staging, consent verification,
+  and a controlled end-to-end SMS test;
 - richer existing-client support;
-- SMS after consent, identity, and review controls are mature;
 - social-media adapters;
 - owner dashboard;
 - PostgreSQL migration when operational volume justifies it;

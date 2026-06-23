@@ -24,11 +24,17 @@ booking validation, external actions, and escalation.
 ## What I Built
 
 - A stateful appointment receptionist for a real service business.
-- Intake handling from Google Forms and Gmail, with a path toward additional
-  channels.
+- Intake handling from Google Forms and Gmail, with a channel-independent
+  foundation for form intake, Gmail conversations, provider events, and gated
+  SMS.
 - Cal.com availability and booking workflows with revalidation before action.
+- Cal.com webhook receipt and booking-ledger reconciliation as an implemented
+  foundation, activated through staged controls.
 - Google Sheets backed operational storage for contacts, submissions,
-  conversations, bookings, and review queues.
+  conversations, bookings, provider events, and review queues, with a migration
+  path as operational complexity grows.
+- Twilio SMS support implemented but gated/disabled pending controlled
+  activation, sender/A2P readiness, and hosted staging validation.
 - Guarded Claude drafting and interpretation behind deterministic checks.
 - Human approval paths for ambiguous, risky, or consequential actions.
 - Idempotency protections against duplicate sends, duplicate processing, and
@@ -48,7 +54,14 @@ booking validation, external actions, and escalation.
 - **Stateful automation:** each workflow keeps durable identity, contact,
   conversation, and booking state rather than relying on a stateless prompt.
 - **Idempotent side effects:** retries are designed to avoid duplicate emails,
-  repeated reply handling, and duplicate booking requests.
+  repeated reply handling, duplicate booking requests, and repeated provider
+  event processing.
+- **Verified provider events:** webhooks are treated as untrusted inputs that
+  must pass signature validation, filtering, storage, and reconciliation before
+  changing booking state.
+- **Normalized channel shape:** form submissions, Gmail messages, provider
+  events, and SMS interactions are adapted into common internal records so
+  policy can stay consistent across channels.
 - **Human review by design:** ambiguous identity, negative replies, unsupported
   requests, and high-impact changes route to review instead of forcing
   automation.
@@ -72,20 +85,31 @@ between prototype and production:
 ## Technology and Concepts
 
 The private implementation uses Python, Google APIs, Gmail, Google Sheets,
-Cal.com, Claude via Anthropic, Railway cron workers, local regression tests, and
-side-effect-free scenario testing. The important concepts are broader than the
-specific stack: channel adapters, identity resolution, state machines,
-idempotency, policy gates, review queues, deployment preflight, and safe
-rollout.
+Cal.com, Twilio, Claude via Anthropic, Railway cron workers, local regression
+tests, and side-effect-free scenario testing. The important concepts are
+broader than the specific stack: channel adapters, identity resolution, state
+machines, idempotency, provider webhook verification, policy gates, review
+queues, deployment preflight, and safe rollout.
 
 ## Current Status
 
 The private system has been developed and tested against real business
 workflows with guarded deployment controls. It supports controlled scheduling
-automation for chess coaching and is being extended toward a channel-independent
-receptionist model. Some future channels and platform features remain roadmap
-items, including broader SMS usage, social-media adapters, a dashboard,
-database migration, and multi-business packaging.
+automation for chess coaching and now includes a channel-independent foundation
+for form intake, Gmail conversations, provider events, and gated SMS.
+Customer-facing SMS remains disabled; it is implemented but gated/disabled
+pending controlled activation.
+
+### Current Maturity
+
+- **Proven:** Google Forms intake, Gmail reply correlation, Cal.com
+  availability and booking validation, lightweight state, fail-closed safety
+  gates, dry-run behavior, and Railway cron execution patterns.
+- **Implemented but gated:** standalone Gmail/business-alias handling, Cal.com
+  webhook receipt and reconciliation, Twilio SMS routing and worker paths, and
+  review queue execution paths.
+- **Future:** social-media adapters, an owner dashboard, PostgreSQL migration,
+  and multi-business packaging.
 
 ## Private Source Notice
 

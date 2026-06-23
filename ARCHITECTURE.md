@@ -10,7 +10,7 @@ flowchart LR
     form[Google Forms] --> adapter[Channel Adapter]
     gmail[Gmail] --> adapter
     cal[Cal.com Events] --> adapter
-    sms[Future Twilio SMS] --> adapter
+    sms[Twilio SMS (implemented, gated)] --> adapter
 
     adapter --> identity[Identity Resolution]
     identity --> context[Customer and Student Context]
@@ -26,6 +26,10 @@ flowchart LR
     decision -->|Booking candidate| booking[Revalidate Slot and Book]
     decision -->|Ambiguous or risky| review[Review and Approval Gate]
 
+    cal --> provider[ProviderEvents Storage]
+    provider --> ledger[Booking Ledger Reconciliation]
+    ledger --> audit
+
     booking --> audit[Audit Log and State Update]
     outbound --> audit
     review --> audit
@@ -37,8 +41,10 @@ flowchart LR
 
 Each input channel is normalized into a common internal message shape. This
 keeps the receptionist from becoming tied to one provider or one lead source.
-Google Forms and Gmail are the primary current paths. Cal.com webhooks and SMS
-fit the same pattern as the platform grows.
+Google Forms remains the proven intake path. Gmail reply correlation is proven,
+and standalone Gmail/business-alias handling exists behind label, allowlist, and
+mode gates. Cal.com webhooks and Twilio SMS fit the same channel-adapter pattern
+as implemented foundations, while social-media adapters remain future work.
 
 ### Identity Resolution
 
@@ -59,6 +65,21 @@ inbound reply can select a previously offered slot, whether a customer needs
 human review, whether booking is enabled, and whether owner approval is
 required.
 
+### Provider Event Receipt and Reconciliation
+
+Cal.com webhook receipt is implemented as a staged foundation. Incoming provider
+events are signature-validated, filtered to relevant event types, stored
+idempotently, and reconciled asynchronously into a booking ledger. Provider
+events can update operational truth, but deterministic policy still decides
+whether any customer-facing action is allowed.
+
+### Gated SMS Foundation
+
+Twilio SMS support is implemented but gated/disabled pending controlled
+activation. The foundation includes consent-aware routing, signed inbound and
+status webhooks, STOP/START/HELP handling, queued interaction storage, and an
+async worker. It is intentionally not described as live customer SMS.
+
 ### Guarded Claude Drafting
 
 The LLM receives bounded tasks, such as interpreting a scheduling reply or
@@ -75,6 +96,20 @@ handle the item.
 
 Outbound email and booking actions happen only after validation. Each external
 action is recorded so retries can be reconciled instead of repeated blindly.
+SMS sends follow the same queued, gated pattern and remain disabled until sender
+registration, hosted staging, consent verification, and controlled testing are
+complete.
+
+## Current Maturity
+
+- **Proven:** Google Forms intake, Gmail reply correlation, Cal.com availability
+  and booking validation, state tracking, safety gates, and hosted cron
+  execution patterns.
+- **Implemented but gated:** standalone Gmail/business-alias handling, Cal.com
+  webhooks and booking ledger reconciliation, Twilio SMS, and review queue
+  execution paths.
+- **Future:** social-media adapters, owner dashboard, PostgreSQL migration, and
+  multi-business packaging.
 
 ## Why the LLM Is Not Trusted With Direct Execution
 
